@@ -1,5 +1,5 @@
 name: "Nintendo Stock Checker"
-version: "1.0.2"
+version: "1.0.3"
 slug: "nintendo_stock_checker"
 description: "Überwacht Nintendo Store mit Playwright"
 startup: application
