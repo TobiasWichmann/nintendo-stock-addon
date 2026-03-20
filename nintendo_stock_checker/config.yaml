@@ -1,0 +1,19 @@
+name: "Nintendo Stock Checker"
+version: "1.0.0"
+slug: "nintendo_stock_checker"
+description: "Überwacht Nintendo Store mit Playwright"
+startup: application
+boot: auto
+init: false
+arch:
+  - amd64
+  - aarch64
+  - armv7
+options:
+  product_url: "https://store.nintendo.de/de/super-nintendo-entertainment-system-snes-controller-fr-nintendo-switch-000000000010002877"
+  webhook_url: "http://homeassistant:8123/api/webhook/nintendo_snes_restock_2026"
+  interval_seconds: 120
+schema:
+  product_url: str
+  webhook_url: str
+  interval_seconds: int
