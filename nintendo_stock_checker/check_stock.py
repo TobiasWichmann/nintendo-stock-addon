@@ -8,23 +8,9 @@ from playwright.sync_api import sync_playwright
 OPTIONS_PATH = "/data/options.json"
 STATE_FILE = "/data/last_state.txt"
 
-AVAILABLE = [
-    "Zum Warenkorb hinzufügen",
-    "In den Warenkorb",
-    "Add to cart",
-    "Warenkorb",
-]
-
-UNAVAILABLE = [
-    "nicht vorrätig",
-    "nicht verfügbar",
-    "ausverkauft",
-    "out of stock",
-    "sold out",
-]
+UNAVAILABLE_TEXT = "nicht vorrätig"
 
 
-# 🔥 Log-Funktion mit Zeitstempel
 def log(message):
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"[{now}] {message}", flush=True)
@@ -55,15 +41,10 @@ def send_webhook(url, msg):
 def detect_state(text):
     lower = text.lower()
 
-    for item in AVAILABLE:
-        if item.lower() in lower:
-            return "available"
+    if UNAVAILABLE_TEXT in lower:
+        return "unavailable"
 
-    for item in UNAVAILABLE:
-        if item.lower() in lower:
-            return "unavailable"
-
-    return "unknown"
+    return "available"
 
 
 def check_product(product_url):
@@ -80,7 +61,6 @@ def check_product(product_url):
         page.goto(product_url, timeout=60000, wait_until="domcontentloaded")
         page.wait_for_timeout(12000)
 
-        # Cookie-Banner versuchen zu schließen
         for selector in [
             "button:has-text('Akzeptieren')",
             "button:has-text('Alle akzeptieren')",
@@ -97,12 +77,14 @@ def check_product(product_url):
         page.wait_for_timeout(5000)
 
         text = page.locator("body").inner_text(timeout=10000)
-
         page.screenshot(path="/data/debug.png", full_page=True)
         browser.close()
 
-        state = detect_state(text)
+        preview = text[:1500].replace("\n", " ")
+        log(f"Seitentext-Vorschau: {preview}")
+        log(f"Prüfe auf Text: '{UNAVAILABLE_TEXT}'")
 
+        state = detect_state(text)
         log(f"Erkannter Zustand: {state}")
 
         return state
@@ -125,7 +107,6 @@ def main():
 
             log(f"Vorheriger Zustand: {last_state}")
 
-            # 🔥 immer loggen, nur bei Änderung senden
             if state == "available" and last_state != "available":
                 send_webhook(webhook_url, "Nintendo-Artikel verfügbar")
 
